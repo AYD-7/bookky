@@ -1,13 +1,48 @@
 # imports
+# Built-in
+import json
+import os
+
+# user-defined
 from data.messages import goodbye_message, welcome_message, options_list, view_options_list, delete_options_list
 from data.receipts import receipts
 from utilities.choice_maker import choice
 from utilities.receipt_helper import add_receipt, view_receipts, view_single_receipt, clear_all_receipts, delete_single_receipt
 
 
+# JSON file 
+JSON_FILE_PATH = "./data/receipts.json"
+
+def load_receipts () -> list[dict]:
+    """
+        Safely reads records from the JSON data file
+    """
+
+    # ensures the data folder exists (safety check)
+    os.makedirs(os.path.dirname(JSON_FILE_PATH), exist_ok=True)
+
+    # returns a the content of the JSON file if it isn't empty
+    if os.path.exists(JSON_FILE_PATH) == True and os.path.getsize(JSON_FILE_PATH) > 0:
+        # uses a content manager to safely read the file's content
+        with open(JSON_FILE_PATH, "r") as file:
+            return json.load(file)
+
+    return [] # returns an empty list when file is empty
+
+def save_receipts (receipts_list: list[dict]) -> None:
+    """
+        Saves a new receipt in the JSON file
+    """
+    # content manager to write the receipt list into json file
+    with open(JSON_FILE_PATH, "w") as file:
+        return json.dump(receipts_list, file)
+
+
+
+
 def ask_to_continue():
     """
-        Asking the user if they want to go back to the main menu or exiting out of the function
+        Asks the user if they want to go back to the main menu or exiting out of the function
     """
     while True:
         user_input = (
@@ -45,7 +80,7 @@ def bookky_main_function ():
             new_receipt: dict = add_receipt()
             receipts.append(new_receipt)
 
-            # checking if the user still wants to continue
+            # checks if the user still wants to continue
             if not ask_to_continue():
                 print(f"\n{goodbye_message}")
                 break
