@@ -1,5 +1,6 @@
 from datetime import datetime
 from data.receipts import receipts
+from utilities.choice_maker import select_category
 
 
 
@@ -39,12 +40,17 @@ def add_receipt () -> dict:
     # details
     business: str = input("Business name: ")
     date: str = input("Date (dd/mm/yyyy): ")
-    category: str = input("Category: ")
+    category: str = select_category()
 
     # returns the field to fill in the amount and VAT when the user doesn't enter a valid number
     while True:
         try:
             amount: float = float(input("Amount: "))
+            # rejects negative values
+            if amount <= 0:
+                print("Enter a valid amount. Please try again")
+                continue
+
             break
         except ValueError: 
             print("Enter a valid amount. Please try again")
@@ -52,6 +58,11 @@ def add_receipt () -> dict:
     while True:
         try:
             vat:float = float(input("VAT: "))
+            # rejects negative values
+            if vat <= 0:
+                print("Enter a valid amount. Please try again")
+                continue
+
             break
         except ValueError: 
             print("Enter a valid VAT. Please try again!")
