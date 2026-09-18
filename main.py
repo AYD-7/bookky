@@ -1,156 +1,168 @@
 # imports
-# Built-in
+# built-in
 import json
 import os
+from data.messages import (
+    delete_options_list,
+    goodbye_message,
+    options_list,
+    view_options_list,
+    welcome_message,
+)
 
 # user-defined
-from data.messages import goodbye_message, welcome_message, options_list, view_options_list, delete_options_list
-from data.receipts import receipts
 from utilities.choice_maker import choice
-from utilities.receipt_helper import add_receipt, view_receipts, view_single_receipt, clear_all_receipts, delete_single_receipt
+from utilities.receipt_helper import (
+    add_receipt,
+    clear_all_receipts,
+    delete_single_receipt,
+    view_receipts,
+    view_single_receipt,
+    view_monthly_receipt,
+    view_business_receipt,
+)
+from utilities.summary import display_expense_summary
 
 
-# JSON file 
-JSON_FILE_PATH = "./data/receipts.json"
 
-def load_receipts () -> list[dict]:
+JSON_FILE_PATH = "./data/receipts.json" # JSON file
+
+
+def load_receipts() -> list[dict]:
     """
-        Safely reads records from the JSON data file
+        Reads the JSON file
     """
 
-    # ensures the data folder exists (safety check)
+    # creates a new directory, quietly moves on if file already exists
     os.makedirs(os.path.dirname(JSON_FILE_PATH), exist_ok=True)
 
-    # returns a the content of the JSON file if it isn't empty
-    if os.path.exists(JSON_FILE_PATH) == True and os.path.getsize(JSON_FILE_PATH) > 0:
-        # uses a content manager to safely read the file's content
+    # loads the JSON file as a list if there's content in it
+    if os.path.exists(JSON_FILE_PATH) and os.path.getsize(JSON_FILE_PATH) > 0:
+        # content manager
         with open(JSON_FILE_PATH, "r") as file:
             return json.load(file)
+        
+    return [] # returns an empty list if there isn't
 
-    return [] # returns an empty list when file is empty
 
-def save_receipts (receipts_list: list[dict]) -> None:
+def save_receipts(receipts_list: list[dict]) -> None:
     """
-        Saves a new receipt in the JSON file
+        Saves update into the JSON file
     """
-    # content manager to write the receipt list into json file
+    # content manager: writes content into the JSON file
     with open(JSON_FILE_PATH, "w") as file:
-        return json.dump(receipts_list, file)
+        json.dump(receipts_list, file, indent=4)  # added indent for readable JSON
 
 
-
-
-def ask_to_continue():
+def ask_to_continue() -> bool:
     """
-        Asks the user if they want to go back to the main menu or exiting out of the function
+        Returns user to the main menu
     """
+
+    # loop to keep the function alive
     while True:
+        # gets use's input 
         user_input = (
-            input("Do you want to return to the main menu? [yes/no] ").strip().lower()
+            input("\nDo you want to return to the main menu? [yes/no] ")
+            .strip()
+            .lower()
         )
 
+        # returns user to main menu
         if user_input in ["yes", "y"]:
             print("Returning to the main menu...\n")
             return True
+
+        # triggers exiting the main function
         elif user_input in ["no", "n"]:
             return False
 
 
-# main function
-def bookky_main_function ():
+def bookky_main_function():
     """
-        Main Bookky function. The entry function.
+        Main function. The entry function.
     """
 
-    print(welcome_message) # showing the user the welcome message
+    print(welcome_message)
 
-    # keeping the program alive using a while loop
     while True:
+        # loads state at start of loop so all options access the freshest data
+        current_receipts = load_receipts()
+
         print(options_list)
+        option: str = choice()
 
-        option: str = choice() # getting the user's answer
-
-        # handling when the user input an invalid value
-        if option not in ["1", "2", "3", "4"]:
+        # handles invalid input
+        if option not in ["1", "2", "3", "4", "5"]:
             print("You need to enter a valid input! Try again\n")
-            continue # skipping the current iteration and moving to a new one
+            continue
 
-        # 1. add a new receipt choice
+        # 1. Add receipt
         if option == "1":
-            new_receipt: dict = add_receipt()
-            receipts.append(new_receipt)
+            new_receipt = add_receipt(current_receipts)
+            current_receipts.append(new_receipt)
+            save_receipts(current_receipts)
 
-            # checks if the user still wants to continue
-            if not ask_to_continue():
-                print(f"\n{goodbye_message}")
-                break
-
-        # 2. view receipts choice
+        # 2. View receipts
         elif option == "2":
             print(view_options_list)
-            
+
             while True:
-                view_option: str = choice() # gets what the user wants to view
-                if view_option in ["1", "2"]:
+                view_option = choice()
+                if view_option in ["1", "2", "3", "4"]:
                     break
-                else:
-                    print("Enter a valid input! Please try again!")
+                print("Enter a valid input! Please try again!")
 
-
-
-            # viewing all the receipts
+            # view all receipts
             if view_option == "1":
-                view_receipts(receipts)
+                view_receipts(current_receipts)
 
-                # checks if the user still wants to continue
-                if not ask_to_continue():
-                    print(f"\n{goodbye_message}")
-                    break
+            # view a receipt
+            elif view_option == "2":
+                view_single_receipt(current_receipts)
 
-            # viewing a single receipt
-            else:
-                view_single_receipt()
+            # view by month
+            elif view_option == "3":
+                view_monthly_receipt(current_receipts)
 
-                # checks if the user still wants to continue
-                if not ask_to_continue():
-                    print(f"\n{goodbye_message}")
-                    break
+            # view by business
+            elif view_option == "4":
+                view_business_receipt(current_receipts)
 
-        # 3. delete choice
+        # 3. Delete receipts
         elif option == "3":
             print(delete_options_list)
-
             while True:
-                delete_option: str = choice() # gets what the user wants to delete
+                delete_option = choice()
                 if delete_option in ["1", "2"]:
                     break
-                else:
-                    print("Enter a valid input! Please try again!")
+                print("Enter a valid input! Please try again!")
 
-            # routes the user choice to the helper functions
+            # Delete single receipt
             if delete_option == "1":
-                delete_single_receipt()
+                if delete_single_receipt(current_receipts):
+                    save_receipts(current_receipts)
 
-                # checks if the user still wants to continue
-                if not ask_to_continue():
-                    print(f"\n{goodbye_message}")
-                    break
-
+            # Clear all receipts
             elif delete_option == "2":
-                clear_all_receipts()
-                # checks if the user still wants to continue
-                if not ask_to_continue():
-                    print(f"\n{goodbye_message}")
-                    break
+                if clear_all_receipts(current_receipts):
+                    save_receipts(current_receipts)
+
+        # 4. Expense Summary
+        elif option == "4":
+            display_expense_summary(current_receipts)
 
 
-
-        # 4. exit choice
+        # 5. Exit
         else:
             print(f"\n{goodbye_message}")
             break
 
+        # Check menu return after completing any option
+        if not ask_to_continue():
+            print(f"\n{goodbye_message}")
+            break
 
-# invoking the function
+
 if __name__ == "__main__":
     bookky_main_function()

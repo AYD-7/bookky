@@ -1,79 +1,62 @@
 from datetime import datetime
-from data.receipts import receipts
 from utilities.choice_maker import select_category
+from data.messages import not_available
 
 
-
-# generates new id
-def id_generator () -> str:
+def id_generator(receipts_list: list[dict]) -> str:
     """
-        Helper function to generate a new id number
+        Generates a sequential ID like RN0001, RN0002.
     """
-    last_receipt_no:str = receipts[-1]["id"][2:] # gets the last 4 characters of the id number of the last receipt
 
-    new_receipt_no: int = int(last_receipt_no) + 1 # adds one
-    new_receipt_no: str = str(new_receipt_no) # converts to a string
-    place_value: int = len(new_receipt_no) # gets the no. of characters
-    new_id: str = "RN"
+    if not receipts_list:
+        return "RN0001"
 
-    # checks if the place value is in units, tens hundreds, or thousands
-    if place_value == 4: # thousands
-        new_id += new_receipt_no 
-    elif place_value == 3: # hundreds
-        new_id += f"0{new_receipt_no}"
-    elif place_value == 2: # tens
-        new_id += f"00{new_receipt_no}"
-    else: # units
-        new_id += f"000{new_receipt_no}"
+    # Gets last numeric portion and increments
+    last_id_str = receipts_list[-1]["id"][2:]
+    next_num = int(last_id_str) + 1
 
-    return new_id # returns the new id
+    # :04d automatically pads numbers with leading zeros up to 4 digits
+    return f"RN{next_num:04d}"
 
 
-# adds a new receipt
-def add_receipt () -> dict:
+def add_receipt(receipts_list: list[dict]) -> dict:
     """
-        Helper function to add a receipt to a list of receipts
+        Prompts for input and returns a new receipt dictionary.
     """
 
     print("Enter receipt details")
 
-    # details
+    # next lines of code get different details needed for the receipt
     business: str = input("Business name: ")
     date: str = input("Date (dd/mm/yyyy): ")
     category: str = select_category()
 
-    # returns the field to fill in the amount and VAT when the user doesn't enter a valid number
     while True:
         try:
             amount: float = float(input("Amount: "))
-            # rejects negative values
+            # rejects negative numbers and zero
             if amount <= 0:
                 print("Enter a valid amount. Please try again")
                 continue
-
             break
-        except ValueError: 
+        except ValueError:
             print("Enter a valid amount. Please try again")
 
     while True:
         try:
-            vat:float = float(input("VAT: "))
-            # rejects negative values
-            if vat <= 0:
+            vat: float = float(input("VAT: "))
+            if vat < 0:  # allows 0 VAT if needed
                 print("Enter a valid amount. Please try again")
                 continue
-
             break
-        except ValueError: 
+        except ValueError:
             print("Enter a valid VAT. Please try again!")
 
     payment_method: str = input("Payment Method: ")
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # gets the date in this format: 2026-08-20 23:05:45 
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-
-    # generates a new id  when it's not the first receipt
-    receipt_id: str = "RN0001" if len(receipts) <= 0 else id_generator() 
+    # Pass the active list to generator
+    receipt_id = id_generator(receipts_list)
     print("Receipt added successfully!")
 
     return {
@@ -84,92 +67,100 @@ def add_receipt () -> dict:
         "amount": amount,
         "vat": vat,
         "payment_method": payment_method,
-        "created_at": current_time
+        "created_at": current_time,
     }
 
 
-# views receipt(s)
-def view_receipts (receipts_list: list[dict]) -> None:
+def view_receipts(receipts_list: list[dict]) -> None:
     """
-        Helper function finds and displays all receipts
+        Displays summary table of all receipts.
     """
-    if len(receipts_list) <= 0:
-        print("You currently don't have any receipt")
+
+    # safely returns when the JSON file is empty
+    if not receipts_list:
+        print(not_available)
         return
-    
-    # creates the table header
+
+    # prints header
     print(f"\n{'ID':<8} | {'Business':<20} | {'Amount':<12} | {'Date':<10}")
+    # prints divider
     print("-" * 60)
 
-    # renders each receipt as standard output
+    # loops through the receipt list
     for receipt in receipts_list:
-        # formats the amount column to look neat
         formatted_amount = f"₦{receipt['amount']:,.2f}"
-        
-        # left-aligns columns using spacing markers (<8, <20, etc.)
-        print(f"{receipt['id']:<8} | {receipt['business_name'][:20]:<20} | {formatted_amount:<12} | {receipt['date']:<10}")
-    
+        print(
+            f"{receipt['id']:<8} | {receipt['business_name'][:20]:<20} | {formatted_amount:<12} | {receipt['date']:<10}"
+        )
+
+    # prints footer divider
     print("-" * 60)
-    return
 
 
-def view_single_receipt () -> None:
-    """
-        Helper function finds a single receipt
-    """
+def view_single_receipt(receipts_list: list[dict]) -> None:
+    """Searches and views details of a single receipt."""
+    if not receipts_list: 
+        print(not_available)
+        return
 
     receipt_id: str = input("Enter the receipt's id: ")
 
-    for receipt in receipts:
+    for receipt in receipts_list:
         if receipt_id.strip().upper() == receipt["id"].upper():
             print(f"\n--- RECEIPT DETAILS ({receipt['id']}) ---")
-            
-            # formats each key-value pair beautifully
             print(f"Business Name:  {receipt['business_name']}")
             print(f"Date:           {receipt['date']}")
             print(f"Category:       {receipt['category']}")
-            print(f"Amount:         ₦{receipt['amount']:,.2f}")  # formatted currency
+            print(f"Amount:         ₦{receipt['amount']:,.2f}")
             print(f"VAT:            ₦{receipt['vat']:,.2f}")
             print(f"Payment Method: {receipt['payment_method']}")
             print(f"Logged At:      {receipt['created_at']}")
             print("-" * 32)
-            return  # exits the function after printing
-                
+            return
+
     print("Cannot find the receipt")
-    return # exits after printing
-    
-    
-# deletes a single receipt
-def delete_single_receipt() -> None:
+
+def view_monthly_receipt (receipts_list: list[dict]) -> None:
+    pass
+
+def view_business_receipt (receipts_list: list[dict]) -> None:
+    pass
+
+
+def delete_single_receipt(receipts_list: list[dict]) -> bool:
     """
-        Helper function to delete a specific receipt by its ID
+        Deletes a single receipt by ID. Returns True if modified.
     """
+    if not receipts_list: 
+        print(not_available)
+        return
+    
     receipt_id: str = input("Enter the receipt's id to delete: ")
 
-    # loops to find the receipt
-    for receipt in receipts:
+    for receipt in receipts_list:
         if receipt_id.strip().upper() == receipt["id"].upper():
-            receipts.remove(receipt) # removes the specific receipt from the list
+            receipts_list.remove(receipt)
             print(f"Receipt {receipt_id.upper()} deleted successfully!")
-            return # exits the function after deleting
+            return True  # signals that state changed
 
     print("Cannot find the receipt")
-    return # exits after printing
+    return False
 
 
-# clears all receipts
-def clear_all_receipts() -> None:
+def clear_all_receipts(receipts_list: list[dict]) -> bool:
     """
-        Helper function to delete all receipts in the system
+        Clears all receipts. Returns True if modified.
     """
-    # confirms if the user really wants to wipe out all data
-    confirm: str = input("Are you sure you want to clear all receipts? (yes/no): ")
+    # confirmation message
+    confirm: str = input(
+        "Are you sure you want to clear all receipts? (yes/no): "
+    )
 
+    # clearing the receipt
     if confirm.strip().lower() in ["yes", "y"]:
-        receipts.clear() # empties the receipts list completely
+        receipts_list.clear()
         print("All receipts cleared successfully!")
+        return True  # Signal that state changed
     else:
         print("Operation cancelled. Receipts were not deleted.")
-        
-    return # exits the function
-
+        return False
