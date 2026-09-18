@@ -14,13 +14,17 @@ options_list = f"""
 1. Add Receipt
 2. View
 3. Delete
-4. Exit
+4. Expense Summary
+5. Exit
 """
 
 # view
 view_options_list = f"""
 1. View All Receipts
 2. View A Receipt
+3. View By Month
+4. View By Category
+5. View By Business
 """
 
 # delete
@@ -40,3 +44,11 @@ category_options_list = """
 7. Entertainment
 8. Other
 """
+
+summary_header = f"""
+{"=" * 50}
+                EXPENSE SUMMARY
+{"=" * 50}
+"""
+
+not_available = "No receipts available"
