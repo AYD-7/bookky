@@ -15,7 +15,8 @@ options_list = f"""
 2. View
 3. Delete
 4. Expense Summary
-5. Exit
+5. Exports
+6. Exit
 """
 
 # view
@@ -23,8 +24,9 @@ view_options_list = f"""
 1. View All Receipts
 2. View A Receipt
 3. View By Month
-4. View By Category
-5. View By Business
+4. View By Year
+5. View By Category
+6. View By Business
 """
 
 # delete
@@ -52,3 +54,4 @@ summary_header = f"""
 """
 
 not_available = "No receipts available"
+

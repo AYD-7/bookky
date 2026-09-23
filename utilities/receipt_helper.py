@@ -1,5 +1,5 @@
 from datetime import datetime
-from utilities.choice_maker import select_category
+from utilities.choice_maker import choice, select_category
 from data.messages import not_available
 
 
@@ -121,10 +121,208 @@ def view_single_receipt(receipts_list: list[dict]) -> None:
     print("Cannot find the receipt")
 
 def view_monthly_receipt (receipts_list: list[dict]) -> None:
-    pass
+    """
+        Filters and displays receipts for a user-specified month
+    """
+    if not receipts_list :
+        print(not_available)
+        return 
 
-def view_business_receipt (receipts_list: list[dict]) -> None:
-    pass
+    # step 1. get and validate user's input
+    while True:
+        try:
+            month: int = int(input("Enter month (1 - 12): "))
+            if month not in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+                print("Invalid input")
+                continue
+            break
+        except ValueError:
+            print("Invalid input")
+
+    while True:
+        try:
+            year: int = int(input("Enter year (e.g., 2026): "))
+            if len(str(year)) != 4:
+                print("Invalid input")
+                continue
+            break
+        except ValueError:
+            print("Invalid input")
+
+    # step 2. filtering receipts that match the month and year
+    matching_receipts: list[dict] = []
+
+    for receipt in receipts_list:
+        try:
+            # parses "dd/mm/yyyy" into datetime object
+            receipt_date: str = datetime.strptime(receipt["date"].strip(), "%d/%m/%Y")
+
+            if receipt_date.month == month and receipt_date.year == year:
+                matching_receipts.append(receipt) 
+        except ValueError:
+            # skips receipt when it has invalid date
+            continue  
+
+    #step 3. display filtered receipts
+    if not matching_receipts:
+        print(f"\nNo receipts found for {month:02d}/{year}")
+        return
+
+    total_amount: float = 0
+    total_vat: float = 0
+
+    for receipt in matching_receipts:
+        total_amount += receipt["amount"]
+        total_vat += receipt["vat"]
+
+    # reuse the existing receipt table formatter
+    print(f"\n{"-" * 19} RECEIPTS FOR {month:02d}/{year} {"-" * 19} \n\nTotal no. of receipts: {len(matching_receipts)}")
+    view_receipts(matching_receipts)
+    print(f"Total Amount: ₦{total_amount:,.2f} \nTotal VAT: ₦{total_vat:,.2f}")
+
+def view_yearly_receipt (receipts_list: list[dict]) -> None:
+    """
+        Filters and displays receipts for a user-specified year.
+    """
+    if not receipts_list:
+        print("You currently don't have any receipts.")
+        return
+
+    # 1. prompt for year input
+    while True:
+        try:
+            year: int = int(input("Enter year (e.g., 2026): "))
+            if len(str(year)) != 4:
+                print("Invalid input")
+                continue
+            break
+        except ValueError:
+            print("Invalid input")
+
+    # 2. filter receipts matching the year
+    matching_receipts: list[dict] = []
+
+    for receipt in receipts_list:
+        try:
+            # parses "dd/mm/yyyy" string into a datetime object
+            receipt_date: str = datetime.strptime(receipt["date"].strip(), "%d/%m/%Y")
+
+            if receipt_date.year == year:
+                matching_receipts.append(receipt)
+
+        except ValueError:
+            # skip receipts with invalid date formats
+            continue
+
+    # 3. display filtered results
+    if not matching_receipts:
+        print(f"\nNo receipts found for the year {year}.")
+        return
+
+    for receipt in matching_receipts:
+        total_amount += receipt["amount"]
+        total_vat += receipt["vat"]
+
+    total_amount: float = 0
+    total_vat: float = 0
+
+    # reuse the existing receipt table formatter
+    print(f"\n{"-" * 20} RECEIPTS FOR {year} {"-" * 20} \n\nTotal no. of receipts: {len(matching_receipts)}")
+    view_receipts(matching_receipts)
+    print(f"Total Amount: ₦{total_amount:,.2f} \nTotal VAT: ₦{total_vat:,.2f}")
+
+
+
+def view_category_receipt(receipts_list: list[dict]) -> None:
+    """
+        Filters and displays all the receipts in a category 
+    """
+
+    if not receipts_list:
+        print(not_available)
+        return
+
+    category: str = select_category()
+
+    # filtering receipts that matches the category
+    matching_receipts: list[dict] = [receipt for receipt in receipts_list if receipt["category"] == category]
+
+    # display filtered receipts
+    if not matching_receipts:
+        print(f"\nNo receipts found for category: {category}")
+        return
+
+    total_amount: float = 0
+    total_vat: float = 0
+
+    for receipt in matching_receipts:
+        total_amount += receipt["amount"]
+        total_vat += receipt["vat"]
+
+    # reuse the existing receipt table formatter
+    print(f"\n{"-" * 12} RECEIPTS FOR {category.upper()[:20]}{"." if len(category) > 20 else ""} {"-" * 12} \n\nTotal no. of receipts: {len(matching_receipts)}")
+    view_receipts(matching_receipts)
+
+    print(f"Total Amount: ₦{total_amount:,.2f} \nTotal VAT: ₦{total_vat:,.2f}")
+
+
+    
+
+def view_business_receipt(receipts_list: list[dict]) -> None:
+    """
+        Filters and displays all receipts from a selected business.
+    """
+    if not receipts_list:
+        print("You currently don't have any receipts.")
+        return
+
+    # 1. get unique business names 
+    businesses: list[str] = list(
+        {receipt["business_name"].strip() for receipt in receipts_list}
+    )
+
+    # 2. build the numbered menu 
+    print("\nSelect a Business:")
+    for index, business in enumerate(businesses, start=1):
+        print(f"{index}. {business}")
+
+    # 3. handle selection input safely
+    selected_business = None
+
+    while True:
+        user_input = choice()
+
+        # checks if the input is a valid numeric choice from the list
+        if user_input.isdigit():
+            selected_index = int(user_input) - 1
+            if 0 <= selected_index < len(businesses):
+                selected_business = businesses[selected_index]
+                break
+
+        print(f"Invalid input! Enter a number between 1 and {len(businesses)}.")
+
+    # 4. filters receipts for the selected business
+    matching_receipts = [
+        receipt
+        for receipt in receipts_list
+        if receipt["business_name"].strip().lower() == selected_business.lower()
+    ]
+
+    total_amount: float = 0
+    total_vat: float = 0
+
+    for receipt in matching_receipts:
+        total_amount += receipt["amount"]
+        total_vat += receipt["vat"]
+
+    # 5. displays the filtered results
+    print(f"\n{"-" * 12} RECEIPTS FOR {selected_business.upper()[:20]}{"." if len(selected_business) > 20 else ""} {"-" * 12} \n\nTotal no. of receipts: {len(matching_receipts)}")
+    view_receipts(matching_receipts)
+
+    print(f"Total Amount: ₦{total_amount:,.2f} \nTotal VAT: ₦{total_vat:,.2f}")
+
+    
+    
 
 
 def delete_single_receipt(receipts_list: list[dict]) -> bool:
