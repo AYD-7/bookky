@@ -19,9 +19,12 @@ from utilities.receipt_helper import (
     view_receipts,
     view_single_receipt,
     view_monthly_receipt,
+    view_yearly_receipt,
+    view_category_receipt,
     view_business_receipt,
 )
 from utilities.summary import display_expense_summary
+from utilities.export_helper import export_receipts_to_downloads
 
 
 
@@ -109,7 +112,7 @@ def bookky_main_function():
 
             while True:
                 view_option = choice()
-                if view_option in ["1", "2", "3", "4"]:
+                if view_option in ["1", "2", "3", "4", "5", "6"]:
                     break
                 print("Enter a valid input! Please try again!")
 
@@ -125,8 +128,16 @@ def bookky_main_function():
             elif view_option == "3":
                 view_monthly_receipt(current_receipts)
 
-            # view by business
+            # view by year
             elif view_option == "4":
+                view_yearly_receipt(current_receipts)
+
+            # view by category
+            elif view_option == "5":
+                view_category_receipt(current_receipts)
+
+            # view by business
+            elif view_option == "6":
                 view_business_receipt(current_receipts)
 
         # 3. Delete receipts
@@ -152,8 +163,12 @@ def bookky_main_function():
         elif option == "4":
             display_expense_summary(current_receipts)
 
+        # 5. Exports
+        elif option == "5":
+            export_receipts_to_downloads(current_receipts)
 
-        # 5. Exit
+
+        # 6. Exit
         else:
             print(f"\n{goodbye_message}")
             break

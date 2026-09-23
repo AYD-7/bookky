@@ -29,6 +29,6 @@ def display_expense_summary (receipts_list: list[dict]) -> None:
 
     top_expense_receipt = max(receipts_list, key= lambda receipt: receipt["amount"])
 
-    print(f"Total Receipts: {total_receipts} \n\nTotal Expenses: ₦{total_expenses:,.2f} \nTotal VAT: ₦{total_vat:,.2f} \n\nTop Category: \n{top_cat} (appeared {count} times) \n\nHighest Expense: \n{top_expense_receipt["business_name"]} - {top_expense_receipt["amount"]:,.2f} - {top_expense_receipt["id"]}")
+    print(f"Total Receipts: {total_receipts} \n\nTotal Expenses: ₦{total_expenses:,.2f} \nTotal VAT: ₦{total_vat:,.2f} \n\nTop Category: \n{top_cat} (appeared {count} times) \n\nHighest Expense: \n{top_expense_receipt["business_name"]} - {top_expense_receipt["amount"]:,.2f} - {top_expense_receipt["id"]} \n{"-" * 50}")
 
 
