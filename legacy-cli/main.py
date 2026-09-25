@@ -28,7 +28,7 @@ from utilities.export_helper import export_receipts_to_downloads
 
 
 
-JSON_FILE_PATH = "./data/receipts.json" # JSON file
+JSON_FILE_PATH = "./legacy-cli/data/receipts.json" # JSON file
 
 
 def load_receipts() -> list[dict]:

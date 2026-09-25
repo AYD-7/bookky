@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Bookky API"
     VERSION: str = "3.1.0"
     API_V1_STR: str = "/api/v1"
+    BACKEND_URL: str = "http://127.0.0.1:8000/"
 
     DATABASE_URL: str
     BACKEND_CORS_ORIGINS: List[str] = [
