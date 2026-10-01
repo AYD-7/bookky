@@ -28,7 +28,7 @@ class ReceiptCreate (ReceiptBase):
 # schema for returning a receipt (data sent back to the user)
 class ReceiptResponse (ReceiptBase):
     id: str
-    created_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    created_at: datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     class Config:
         # allows pydantic to directly read data from database ORM models
