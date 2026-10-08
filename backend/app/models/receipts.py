@@ -16,8 +16,8 @@ def create_receipt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Create a new receipt owned by the currently logged-in user."""
-    db_receipt = Receipt(**receipt_in.model_dump(), user_id=current_user.id)
+    """Creates a new receipt owned by the currently logged-in user."""
+    db_receipt = Receipt(**receipt_in.model_dump(), user_id = current_user.id)
     db.add(db_receipt)
     db.commit()
     db.refresh(db_receipt)
@@ -29,7 +29,7 @@ def get_user_receipts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Fetch all receipts that belong ONLY to the logged-in user."""
+    """Fetches all receipts that belong ONLY to the logged-in user."""
     return db.query(Receipt).filter(Receipt.user_id == current_user.id).all()
 
 
@@ -39,7 +39,7 @@ def get_single_receipt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get a single receipt by ID (ensuring it belongs to the current user)."""
+    """Gets a single receipt by ID (ensuring it belongs to the current user)."""
     receipt = (
         db.query(Receipt)
         .filter(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
@@ -47,8 +47,8 @@ def get_single_receipt(
     )
     if not receipt:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Receipt not found or you don't have access to it",
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Receipt not found or you don't have access to it",
         )
     return receipt
 

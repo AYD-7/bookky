@@ -18,5 +18,8 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # Short-lived access
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7     # Long-lived refresh
+
 
 settings = Settings()
